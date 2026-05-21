@@ -37,7 +37,8 @@ def register_from_dataset(dataset_dir_path: str) -> None:
     base_path = Path(dataset_dir_path)
     
     if not base_path.exists():
-        raise FileNotFoundError(f"Dataset directory not found at: {base_path}")
+        print(f"⚠️ [System Alert] Directory '{dataset_dir_path}' not found in repo path. Auto-generating baseline tracking directory structure.")
+        base_path.mkdir(parents=True, exist_ok=True)
         
     print("\n[AI Engine] Scanning dataset for known faces...")
     

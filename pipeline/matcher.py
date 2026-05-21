@@ -51,3 +51,30 @@ download_and_flatten_models()
 # Initialize the shared engine instance pointing strictly to Buffalo_L
 app = FaceAnalysis(name='buffalo_l', root=MODELS_DIR, allowed_modules=['detection', 'recognition'])
 app.prepare(ctx_id=-1, det_size=(640, 640))  # Force CPU execution to comply with Streamlit limits
+
+# --- [ADD THIS TO THE VERY BOTTOM OF pipeline/matcher.py] ---
+
+class EmbeddingMatcher:
+    @staticmethod
+    def find_best_match(current_embedding: np.ndarray, registry: dict[str, list[np.ndarray]]) -> tuple[str, float]:
+        """Compares a face vector against the registered dataset matrix using Cosine Similarity"""
+        import config
+        best_name = "Unknown"
+        # Pull threshold fallback from centralized configuration file if not dynamically specified
+        best_score = config.SIMILARITY_THRESHOLD 
+        
+        if current_embedding is None:
+            return best_name, 0.0
+
+        for person_name, saved_embeddings in registry.items():
+            for saved_emb in saved_embeddings:
+                # Vector mathematical calculations
+                dot_p = np.dot(saved_emb, current_embedding)
+                norm_r = np.linalg.norm(saved_emb) * np.linalg.norm(current_embedding)
+                similarity_score = float(dot_p / norm_r) if norm_r != 0 else 0.0
+                
+                if similarity_score > best_score:
+                    best_score = similarity_score
+                    best_name = person_name
+                    
+        return best_name, best_score
