@@ -7,38 +7,47 @@ import shutil
 # 🎯 Universal safe directory routing inside the cloud workspace
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MODELS_DIR = os.path.join(BASE_DIR, 'models')
-ANTELOPE_DIR = os.path.join(MODELS_DIR, 'antelopev2')
+BUFFALO_DIR = os.path.join(MODELS_DIR, 'buffalo_l')
 
-MODEL_URL = "https://github.com/deepinsight/insightface/releases/download/v0.7/antelopev2.zip"
+# 🌐 Official InsightFace pre-trained Buffalo_L weights repository link
+MODEL_URL = "https://github.com/deepinsight/insightface/releases/download/v0.7/buffalo_l.zip"
 
 def download_and_flatten_models():
-    """Ensures AI weight binaries are present and perfectly structured without nested folder traps"""
-    target_onnx = os.path.join(ANTELOPE_DIR, 'scrfd_10g_bnkps.onnx')
+    """Forces clean extraction of Buffalo_L ONNX files directly into models/buffalo_l/"""
+    # Look for the primary face detection model inside buffalo_l
+    target_onnx = os.path.join(BUFFALO_DIR, 'det_500m.onnx')
     
     if not os.path.exists(target_onnx):
-        os.makedirs(MODELS_DIR, exist_ok=True)
-        zip_path = os.path.join(MODELS_DIR, "antelopev2.zip")
+        print("🚀 Core Buffalo_L models missing. Initiating download channel (~145MB)...")
+        shutil.rmtree(BUFFALO_DIR, ignore_errors=True)
+        os.makedirs(BUFFALO_DIR, exist_ok=True)
         
-        print("🚀 Downloading core AI model assets (~50MB)...")
+        zip_path = os.path.join(MODELS_DIR, "buffalo_l.zip")
+        temp_extract_dir = os.path.join(MODELS_DIR, "temp_extract")
+        
+        # Download official Buffalo_L archive bundle
         urllib.request.urlretrieve(MODEL_URL, zip_path)
         
+        # Unpack to temporary staging folder
         with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            zip_ref.extractall(MODELS_DIR)
+            zip_ref.extractall(temp_extract_dir)
             
-        # 📂 Fix the nested folder trap if models extracted to models/antelopev2/antelopev2/
-        nested_dir = os.path.join(ANTELOPE_DIR, 'antelopev2')
-        if os.path.exists(nested_dir):
-            for file_name in os.listdir(nested_dir):
-                shutil.move(os.path.join(nested_dir, file_name), ANTELOPE_DIR)
-            shutil.rmtree(nested_dir)
-            
+        # 🎯 Move all .onnx model layers directly to models/buffalo_l/ without nested folders
+        for root, _, files in os.walk(temp_extract_dir):
+            for file in files:
+                if file.endswith('.onnx'):
+                    shutil.move(os.path.join(root, file), os.path.join(BUFFALO_DIR, file))
+                    
+        # 🧼 Clean up workspace archives
+        shutil.rmtree(temp_extract_dir, ignore_errors=True)
         if os.path.exists(zip_path):
             os.remove(zip_path)
-        print("✅ Models structural layout verified!")
+            
+        print("✅ Buffalo_L models compiled and ready!")
 
-# Run download check before initialization
+# Run structural checks before initializing
 download_and_flatten_models()
 
-# Initialize single global inference instance pointing directly to our directory
-app = FaceAnalysis(name='antelopev2', root=MODELS_DIR, allowed_modules=['detection', 'recognition'])
-app.prepare(ctx_id=-1, det_size=(640, 640)) # Balanced CPU execution mode
+# Initialize the shared engine instance pointing strictly to Buffalo_L
+app = FaceAnalysis(name='buffalo_l', root=MODELS_DIR, allowed_modules=['detection', 'recognition'])
+app.prepare(ctx_id=-1, det_size=(640, 640))  # Force CPU execution to comply with Streamlit limits
