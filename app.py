@@ -42,6 +42,7 @@ with st.expander("ℹ️ First Time User? Click here for 3 simple steps to get s
     """)
 
 # --- LOAD UNDERLYING ENGINES ---
+# --- LOAD UNDERLYING ENGINES ---
 @st.cache_resource
 def load_vision_pipelines():
     from pipeline.detector import FaceDetector
@@ -51,7 +52,8 @@ def load_vision_pipelines():
 try:
     detector, embedder = load_vision_pipelines()
 except Exception as init_err:
-    st.error(f"Failed to initialize core video processing layers: {init_err}")
+    st.error("Failed to initialize core video processing layers:")
+    st.exception(init_err)  # 🎯 This will print the exact technical traceback on the screen
     st.stop()
 
 st.markdown("---")
