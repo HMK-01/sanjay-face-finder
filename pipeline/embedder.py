@@ -5,6 +5,15 @@ Translates visual features into 512-dimensional vector mathematics.
 import numpy as np
 import cv2
 from insightface.app import FaceAnalysis
+import os
+
+# Get the path where your code is running on the Streamlit server
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+models_path = os.path.join(root_dir, 'models')
+
+# Initialize the face analyzer pointing directly to your local models folder
+app = FaceAnalysis(name='antelopev2', root=models_path, allowed_modules=['detection', 'recognition'])
+app.prepare(ctx_id=0, det_size=(640, 640))
 
 class FaceEmbedder:
     def __init__(self):
