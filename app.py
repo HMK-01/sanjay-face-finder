@@ -42,7 +42,6 @@ with st.expander("ℹ️ First Time User? Click here for 3 simple steps to get s
     """)
 
 # --- LOAD UNDERLYING ENGINES ---
-# --- LOAD UNDERLYING ENGINES ---
 @st.cache_resource
 def load_vision_pipelines():
     from pipeline.detector import FaceDetector
@@ -152,8 +151,10 @@ if st.button("🔍 Start Search Engine", type="primary", use_container_width=Tru
 
         # Instantiate live progress indicator bars on user display dashboard lines
         progress_bar = st.progress(0.0, text="Initializing video streaming layers...")
+        
+        # 🎯 FIX: Both tracking variables are cleanly initialized before starting loop operations
         match_records_list = []
-        # --- [Add this line right below 'match_records_list = []' near line 144] ---
+        frame_counter = 0
         MAX_MATCHES = 30  # 🧠 Safety limit: Protect the server from memory crashes
         
         # Process clip array streams
