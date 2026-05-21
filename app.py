@@ -2,8 +2,6 @@
 Sanjay System Consumer Face Search Web App
 Clean, jargon-free user interface optimized for production deployment.
 """
-import sys
-sys.modules['cv2'] = __import__('cv2')
 import streamlit as st
 import cv2
 import numpy as np
