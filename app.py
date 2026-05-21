@@ -151,7 +151,8 @@ if st.button("🔍 Start Search Engine", type="primary", use_container_width=Tru
         # Instantiate live progress indicator bars on user display dashboard lines
         progress_bar = st.progress(0.0, text="Initializing video streaming layers...")
         match_records_list = []
-        frame_counter = 0
+        # --- [Add this line right below 'match_records_list = []' near line 144] ---
+        MAX_MATCHES = 30  # 🧠 Safety limit: Protect the server from memory crashes
         
         # Process clip array streams
         while video_capture.isOpened():
@@ -164,18 +165,27 @@ if st.button("🔍 Start Search Engine", type="primary", use_container_width=Tru
                 continue
                 
             progress_percent = min(frame_counter / total_frames, 1.0)
-            progress_bar.progress(progress_percent, text=f"Scanning Video File: Frame {frame_counter} of {total_frames}")
+            progress_bar.progress(progress_percent, text=f"Scanning Video: Frame {frame_counter}/{total_frames}")
+            
+            # 🧠 OPTIMIZATION 1: Downscale heavy video frames to save massive RAM
+            h_frame, w_frame, _ = frame.shape
+            if w_frame > 640:
+                scale_factor = 640.0 / w_frame
+                frame = cv2.resize(frame, (640, int(h_frame * scale_factor)))
+                h_frame, w_frame, _ = frame.shape # Re-calculate dimensions
             
             detections = detector.detect_faces(frame)
             if not detections:
                 continue
                 
-            h_frame, w_frame, _ = frame.shape
-            
             for face in detections:
+                # Break early if we've already found enough matches to fill the UI gallery
+                if len(match_records_list) >= MAX_MATCHES:
+                    break
+                    
                 x, y, width, height = face["box"]
                 
-                # Apply 30% background perspective context border rules to crops matrices calculations
+                # Apply 30% background perspective context border rules
                 pad_w, pad_h = int(width * 0.3), int(height * 0.3)
                 x_min, y_min = max(0, x - pad_w), max(0, y - pad_h)
                 x_max, y_max = min(w_frame, x + width + pad_w), min(h_frame, y + height + pad_h)
@@ -196,10 +206,10 @@ if st.button("🔍 Start Search Engine", type="primary", use_container_width=Tru
                         
                         # Generate annotated canvas image boxes targets labels
                         annotated_canvas = frame.copy()
-                        cv2.rectangle(annotated_canvas, (x, y), (x + width, y + height), (0, 255, 0), 3)
+                        cv2.rectangle(annotated_canvas, (x, y), (x + width, y + height), (0, 255, 0), 2)
                         label_string = f"MATCH: {round(similarity_score * 100, 1)}%"
-                        cv2.putText(annotated_canvas, label_string, (x, max(30, y - 12)),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                        cv2.putText(annotated_canvas, label_string, (x, max(20, y - 8)),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                         
                         rgb_frame = cv2.cvtColor(annotated_canvas, cv2.COLOR_BGR2RGB)
                         
@@ -212,11 +222,21 @@ if st.button("🔍 Start Search Engine", type="primary", use_container_width=Tru
                         
                 except Exception:
                     continue
+            
+            # Break completely out of frame reading loop if gallery is full
+            if len(match_records_list) >= MAX_MATCHES:
+                st.warning(f"⚠️ Memory Guard Active: Displaying the first {MAX_MATCHES} strong matches to prevent server crashes.")
+                break
 
-        # Release active hardware system thread handles securely from file memory caches registers
+        # Release active hardware system thread handles securely
         video_capture.release()
         Path(temp_video_path).unlink(missing_ok=True)
         progress_bar.empty()
+        
+        # Free up unused python memory objects explicitly
+        import gc
+        gc.collect() 
+        
         st.balloons()
         
         # --- RENDER RESULTS PANEL GALLERY GRID ---
