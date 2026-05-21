@@ -1,5 +1,1 @@
-build-essential
-cmake
-g++
 libgl1
-libglib2.0-0
