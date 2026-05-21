@@ -7,6 +7,7 @@ import cv2
 import numpy as np
 import tempfile
 from pathlib import Path
+from PIL import Image, ImageOps  # 🎯 Native Pillow libraries handling mobile camera metadata fixes
 
 # --- PAGE LAYOUT CONFIGURATIONS ---
 st.set_page_config(
@@ -35,8 +36,7 @@ with st.expander("ℹ️ First Time User? Click here for 3 simple steps to get s
     
     1. **Upload a clear photo** of the single person you want to find under the **Person's Photo** zone.
     2. **Upload your video file** into the **Video File** zone.
-    3. **Adjust settings if needed:** 
-       * *Match Accuracy (Strictness)*: Higher numbers mean less room for error (prevents matching strangers).
+    3. **Adjust settings if needed:** * *Match Accuracy (Strictness)*: Higher numbers mean less room for error (prevents matching strangers).
        * *Processing Speed*: Bypasses frames to scan longer videos significantly faster.
     4. Click the **Start Search Engine** button and watch the results populate!
     """)
@@ -116,12 +116,20 @@ if st.button("🔍 Start Search Engine", type="primary", use_container_width=Tru
     else:
         st.toast("Preparing video analysis components...", icon="⏳")
         
-        # Parse face image from computer memory stream
-        face_bytes = np.frombuffer(uploaded_face.read(), np.uint8)
-        ref_image = cv2.imdecode(face_bytes, cv2.IMREAD_COLOR)
-        
         try:
+            # 📱 MOBILE AUTO-ROTATION CORES: Open file stream with PIL, check EXIF data tags, rotate right-side up
+            pil_image = Image.open(uploaded_face)
+            corrected_image = ImageOps.exif_transpose(pil_image)
+            
+            # Map the clean portrait back to a standard NumPy array array shape matrix
+            rgb_ref_image = np.array(corrected_image)
+            
+            # Convert color channels from RGB (Pillow standard) to BGR (OpenCV pipeline standard)
+            ref_image = cv2.cvtColor(rgb_ref_image, cv2.COLOR_RGB2BGR)
+            
+            # Extract target identity profile feature embeddings
             target_embedding = embedder.extract_embedding(ref_image)
+            
         except Exception as face_err:
             st.error(f"❌ Could not register target face picture profile: Ensure a human face is clearly visible and well-lit.")
             st.stop()
