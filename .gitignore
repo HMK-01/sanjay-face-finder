@@ -1,0 +1,17 @@
+# Ignore local python virtual environments
+venv/
+.venv/
+env/
+
+# Ignore local video files and temporary outputs
+*.mp4
+*.avi
+*.mov
+outputs/
+
+# Ignore compiled face vectors cache files
+known_faces/**/*.npy
+
+# Ignore OS specific junk
+.DS_Store
+Thumbs.db

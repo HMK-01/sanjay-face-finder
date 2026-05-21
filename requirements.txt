@@ -1,0 +1,6 @@
+streamlit>=1.35.0
+mediapipe>=0.10.14
+opencv-python-headless>=4.9.0.80
+numpy>=1.23.5,<2.0.0
+protobuf>=3.20.3,<5.0.0
+https://github.com/fdvgan/insightface-coqui/raw/master/insightface-0.7.3-cp310-cp310-linux_x86_64.whl
