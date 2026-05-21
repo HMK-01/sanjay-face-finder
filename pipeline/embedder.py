@@ -4,30 +4,26 @@ Translates visual features into 512-dimensional vector mathematics.
 """
 import numpy as np
 import cv2
-from insightface.app import FaceAnalysis
-import os
-
-# Get the path where your code is running on the Streamlit server
-root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-models_path = os.path.join(root_dir, 'models')
-
-# Initialize the face analyzer pointing directly to your local models folder
-app = FaceAnalysis(name='antelopev2', root=models_path, allowed_modules=['detection', 'recognition'])
-app.prepare(ctx_id=0, det_size=(640, 640))
+# 🎯 CRITICAL: This import halts embedder execution until matcher finishes downloading!
+from pipeline.matcher import app 
 
 class FaceEmbedder:
     def __init__(self):
-        # Initialize InsightFace using the highly accurate buffalo_l model bundle
-        self.app = FaceAnalysis(name='buffalo_l', providers=['CPUExecutionProvider'])
-        # Prepare the structural weights matrix context completely on CPU
-        self.app.prepare(ctx_id=-1, det_size=(640, 640))
+        # Bind to the globally verified single model instance
+        self.app = app
 
     def extract_embedding(self, image: np.ndarray) -> np.ndarray:
         """
         Takes an image canvas array, uses ArcFace's high-accuracy internal 
         alignment to locate the primary face, and extracts its 512-D vector.
         """
-        faces = self.app.get(image)
+        if image is None or image.size == 0:
+            raise ValueError("Empty image matrix array passed to the embedder engine.")
+            
+        # InsightFace processes underlying arrays in RGB format standard
+        rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        
+        faces = self.app.get(rgb_image)
         if not faces:
             raise ValueError("AI Engine failed to compute facial metrics. Ensure the face is clear and well-lit.")
                 
