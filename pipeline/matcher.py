@@ -3,6 +3,7 @@ import os
 import urllib.request
 import zipfile
 import shutil
+import numpy as np
 
 # 🎯 Universal safe directory routing inside the cloud workspace
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
