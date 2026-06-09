@@ -25,6 +25,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# --- TIMESTAMP FORMATTING HELPER ---
+def format_seconds_to_timestamp(seconds: float) -> str:
+    """Converts a raw float of seconds into a highly clean, human-readable MM:SS format."""
+    total_seconds = int(round(seconds))
+    minutes = total_seconds // 60
+    secs = total_seconds % 60
+    return f"{minutes:02d}:{secs:02d}"
+
 # --- APP HEADER ---
 st.title("Sanjay : AI Based Re-Identification Model")
 st.markdown("Upload a photo of a person to scan, track, and extract every moment they appear inside a video clip.")
@@ -206,19 +214,23 @@ if st.button("Start Search Engine", type="primary", use_container_width=True):
                     
                     if similarity_score >= threshold:
                         timestamp_sec = round(frame_counter / fps, 2)
+                        clock_time = format_seconds_to_timestamp(timestamp_sec)
                         
                         # Generate annotated canvas image boxes targets labels
                         annotated_canvas = frame.copy()
                         cv2.rectangle(annotated_canvas, (x, y), (x + width, y + height), (0, 255, 0), 2)
-                        label_string = f"MATCH: {round(similarity_score * 100, 1)}%"
+                        
+                        # ✨ VISUAL IMPROVEMENT: Combine accuracy and time directly inside the image label banner
+                        label_string = f"MATCH: {round(similarity_score * 100, 1)}% | {clock_time}"
                         cv2.putText(annotated_canvas, label_string, (x, max(20, y - 8)),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
                         
                         rgb_frame = cv2.cvtColor(annotated_canvas, cv2.COLOR_BGR2RGB)
                         
                         match_records_list.append({
                             "frame_idx": frame_counter,
                             "time_offset": timestamp_sec,
+                            "formatted_time": clock_time,  # ✨ Storing the neat MM:SS layout
                             "score": similarity_score,
                             "img_array": rgb_frame
                         })
@@ -252,7 +264,8 @@ if st.button("Start Search Engine", type="primary", use_container_width=True):
             for index, match in enumerate(match_records_list):
                 col_target = columns_layout_grid[index % 3]
                 with col_target:
-                    card_title = f"⏱️ Spotted at: {match['time_offset']} seconds"
+                    # ✨ VISUAL IMPROVEMENT: Prominent, clear clock timestamp styling in the layout columns
+                    card_title = f"⏱️ Time Detected: {match['formatted_time']}"
                     col_target.image(match["img_array"], caption=card_title, use_container_width=True)
-                    st.markdown(f"**Confidence Level:** `{round(match['score'] * 100, 1)}% Match`")
+                    st.markdown(f"**Confidence Level:** `{round(match['score'] * 100, 1)}% Match` (at {match['time_offset']}s)")
                     st.markdown("---")
