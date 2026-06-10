@@ -11,7 +11,7 @@ from PIL import Image, ImageOps  # 🎯 Native Pillow libraries handling mobile 
 
 # --- PAGE LAYOUT CONFIGURATIONS ---
 st.set_page_config(
-    page_title="Sanjay : AI Based Re-Identification Model",
+    page_title="Sanjay : AI-Based Re-Identification Model",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="collapsed" # Hide sidebar entirely for a clean main stage interface
@@ -34,7 +34,7 @@ def format_seconds_to_timestamp(seconds: float) -> str:
     return f"{minutes:02d}:{secs:02d}"
 
 # --- APP HEADER ---
-st.title("Sanjay : AI Based Re-Identification Model")
+st.title("Sanjay : AI-Based Re-Identification Model")
 st.markdown("Upload a photo of a person to scan, track, and extract every moment they appear inside a video clip.")
 
 # --- ONBOARDING INSTRUCTIONS FOR FIRST-TIME USERS ---
