@@ -1,13 +1,12 @@
 """
 Sanjay System Consumer Face Search Web App
-Clean, jargon-free user interface optimized for production deployment.
 """
 import streamlit as st
 import cv2
 import numpy as np
 import tempfile
 from pathlib import Path
-from PIL import Image, ImageOps  # 🎯 Native Pillow libraries handling mobile camera metadata fixes
+from PIL import Image, ImageOps  # Native Pillow libraries handling mobile camera metadata fixes
 
 # --- PAGE LAYOUT CONFIGURATIONS ---
 st.set_page_config(
@@ -37,7 +36,7 @@ def format_seconds_to_timestamp(seconds: float) -> str:
 st.title("Sanjay : AI-Based Re-Identification Model")
 st.markdown("Upload a photo of a person to scan, track, and extract every moment they appear inside a video clip.")
 
-# --- ONBOARDING INSTRUCTIONS FOR FIRST-TIME USERS ---
+# ONBOARDING INSTRUCTIONS FOR FIRST-TIME USERS
 with st.expander("First Time User? Click here for 3 simple steps to get started", expanded=True):
     st.markdown("""
     Welcome! This app uses smart face recognition to scan videos and locate a specific person automatically. 
@@ -49,7 +48,7 @@ with st.expander("First Time User? Click here for 3 simple steps to get started"
     4. Click the **Start Search Engine** button and watch the results populate!
     """)
 
-# --- LOAD UNDERLYING ENGINES ---
+# LOAD UNDERLYING ENGINES
 @st.cache_resource
 def load_vision_pipelines():
     from pipeline.detector import FaceDetector
@@ -60,7 +59,7 @@ try:
     detector, embedder = load_vision_pipelines()
 except Exception as init_err:
     st.error("Failed to initialize core video processing layers:")
-    st.exception(init_err)  # 🎯 This will print the exact technical traceback on the screen
+    st.exception(init_err)  # This will print the exact technical traceback on the screen
     st.stop()
 
 st.markdown("---")
@@ -86,7 +85,7 @@ with col_video:
 
 st.markdown("---")
 
-# --- USER-FRIENDLY ADJUSTMENT SLIDERS ---
+#  USER-FRIENDLY ADJUSTMENT SLIDERS 
 st.subheader("Fine-Tune Search Engine Settings")
 col_slider1, col_slider2 = st.columns(2)
 
@@ -118,7 +117,7 @@ with col_slider2:
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- PROCESS EXECUTION BLOCK ---
+#  PROCESS EXECUTION BLOCK 
 if st.button("Start Search Engine", type="primary", use_container_width=True):
     if not uploaded_face or not uploaded_video:
         st.error("⚠️ Please make sure both a **Person's Photo** and a **Video File** are uploaded before starting.")
@@ -220,7 +219,7 @@ if st.button("Start Search Engine", type="primary", use_container_width=True):
                         annotated_canvas = frame.copy()
                         cv2.rectangle(annotated_canvas, (x, y), (x + width, y + height), (0, 255, 0), 2)
                         
-                        # ✨ VISUAL IMPROVEMENT: Combine accuracy and time directly inside the image label banner
+                        # VISUAL IMPROVEMENT: Combine accuracy and time directly inside the image label banner
                         label_string = f"MATCH: {round(similarity_score * 100, 1)}% | {clock_time}"
                         cv2.putText(annotated_canvas, label_string, (x, max(20, y - 8)),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 2)
